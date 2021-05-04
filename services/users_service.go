@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/ricardovegamx/bookstore_users-api/domain/users"
 	"github.com/ricardovegamx/bookstore_users-api/utils/errors"
+	"github.com/ricardovegamx/bookstore_users-api/utils/errors/date_utils"
 )
 
 func GetUser(userId int64) (*users.User, *errors.RestErr) {
@@ -18,6 +19,9 @@ func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
+
+	user.Status = users.StatusActive // we put it here because the initial status of a user is business logic and that's what services are for :)
+	user.DateCreated = date_utils.GetNowDBFormat()
 
 	if err := user.Save(); err != nil {
 		return nil, err
@@ -61,4 +65,10 @@ func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestErr) 
 func DeleteUser(userId int64) *errors.RestErr {
 	user := &users.User{Id: userId}
 	return user.Delete()
+}
+
+func Search(status string) ([]users.User, *errors.RestErr) {
+	dao := &users.User{}
+
+	return dao.FindByStatus(status)
 }
